@@ -13,7 +13,6 @@ const INTRO_SLIDES = [
   { icon:'🛡️', title:'Sprint Safely', text:'Protect private details, check information and choose what is true, kind and safe.', tags:['Private','Trusted','Kind'] }
 ];
 const GATE_SECONDS = { junior:7, senior:6, mixed:6 };
-const INTRO_MS = 2400;
 const FEEDBACK_MS = 1800;
 const CELEBRATION_MS = 6000;
 
@@ -161,7 +160,8 @@ function attractScreen() {
 
 function introScreen() {
   const slide = INTRO_SLIDES[state.introStep];
-  return shell(`<section class="briefing-card" aria-live="polite"><div class="intro-count">${state.introStep + 1} / ${INTRO_SLIDES.length}</div><div class="brief-icon">${slide.icon}</div><div class="eyebrow">Digital briefing</div><h1 class="brief-title">${slide.title}</h1><p class="brief-copy">${slide.text}</p><div class="concept-tags">${slide.tags.map(tag => `<span>${tag}</span>`).join('')}</div><div class="intro-progress">${INTRO_SLIDES.map((_, index) => `<span class="${index <= state.introStep ? 'active' : ''}"></span>`).join('')}</div></section>`);
+  const lastSlide = state.introStep === INTRO_SLIDES.length - 1;
+  return shell(`<section class="briefing-card" aria-live="polite"><div class="intro-count">${state.introStep + 1} / ${INTRO_SLIDES.length}</div><div class="brief-icon">${slide.icon}</div><div class="eyebrow">Digital briefing</div><h1 class="brief-title">${slide.title}</h1><p class="brief-copy">${slide.text}</p><div class="concept-tags">${slide.tags.map(tag => `<span>${tag}</span>`).join('')}</div><div class="intro-progress">${INTRO_SLIDES.map((_, index) => `<span class="${index <= state.introStep ? 'active' : ''}"></span>`).join('')}</div><div class="briefing-actions"><button class="action briefing-next" id="nextBriefing">${lastSlide ? 'Start Practice' : 'Next'} <span>→</span></button><p>Click the button or press → / ↓</p></div></section>`);
 }
 
 function cityBackdrop() {
@@ -214,6 +214,7 @@ function bindTeacherControls() {
   document.getElementById('nextStudent').onclick = returnToAttract;
   document.getElementById('shuffleDeck').onclick = reshuffleDeck;
   document.getElementById('fullscreenToggle').onclick = toggleFullscreen;
+  document.getElementById('nextBriefing')?.addEventListener('click', advanceBriefing);
   const music = document.getElementById('musicVolume');
   music.oninput = () => { state.musicVolume = Number(music.value); document.getElementById('musicOutput').value = `${Math.round(state.musicVolume * 100)}%`; localStorage.setItem('heritageMusicVolume', state.musicVolume); };
   const effects = document.getElementById('fxVolume');
@@ -238,19 +239,15 @@ function enterSprint() {
   requestFullscreen();
   playEffect('start');
   render();
-  scheduleIntro();
 }
 
-function scheduleIntro() {
-  clearTimeout(flowTimer);
-  flowTimer = setTimeout(() => {
-    if (state.settingsOpen || state.screen !== 'intro') return;
-    if (state.introStep < INTRO_SLIDES.length - 1) {
-      state.introStep += 1;
-      render();
-      scheduleIntro();
-    } else startPractice();
-  }, INTRO_MS);
+function advanceBriefing() {
+  if (state.settingsOpen || state.screen !== 'intro') return;
+  playEffect('move');
+  if (state.introStep < INTRO_SLIDES.length - 1) {
+    state.introStep += 1;
+    render();
+  } else startPractice();
 }
 
 function startPractice() {
@@ -384,8 +381,7 @@ function closeSettings() {
 }
 
 function resumeFlow() {
-  if (state.screen === 'intro') scheduleIntro();
-  else if (state.screen === 'run' && state.gateActive) startCountdown();
+  if (state.screen === 'run' && state.gateActive) startCountdown();
   else if (state.screen === 'run') flowTimer = setTimeout(activateGate, 900);
   else if (state.screen === 'feedback') flowTimer = setTimeout(nextGate, FEEDBACK_MS);
   else if (state.screen === 'celebrate') flowTimer = setTimeout(returnToAttract, CELEBRATION_MS);
@@ -498,6 +494,7 @@ addEventListener('keydown', event => {
   if (key === 'm') toggleMusic();
   if (key === 'r') returnToAttract();
   if (state.screen === 'attract' && ['arrowleft','arrowright'].includes(key)) enterSprint();
+  else if (state.screen === 'intro' && ['arrowright','arrowdown'].includes(key)) advanceBriefing();
   else if (['practice','run'].includes(state.screen) && key === 'arrowleft') moveRunner(-1);
   else if (['practice','run'].includes(state.screen) && key === 'arrowright') moveRunner(1);
   else if (state.screen === 'celebrate' && key === 'arrowdown') returnToAttract();

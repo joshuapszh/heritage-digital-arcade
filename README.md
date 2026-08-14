@@ -8,10 +8,11 @@ An original three-lane runner introducing Grade 3–6 students to Digital Litera
 
 1. Open the launch link on a Mac or Windows computer.
 2. Press **←** or **→** to enter, start the music and request fullscreen.
-3. Watch the Digital Literacy briefing and complete the practice gate.
-4. Use **←** and **→** to move across three lanes before each timed answer gate arrives.
-5. Press **↓** after the achievement screen for the next student.
-6. Teachers can click the settings button or press **S** to select Junior, Senior or Mixed difficulty and control audio, animation, reshuffling and fullscreen.
+3. Read each Digital Literacy briefing screen and select **Next**. The **→** or **↓** key also advances.
+4. Select **Start Practice** after the final explanation and complete the practice gate.
+5. Use **←** and **→** to move across three lanes before each timed answer gate arrives.
+6. Press **↓** after the achievement screen for the next student.
+7. Teachers can click the settings button or press **S** to select Junior, Senior or Mixed difficulty and control audio, animation, reshuffling and fullscreen.
 
 Every sprint draws one challenge from each of five curriculum areas: privacy, online safety, digital footprints, information literacy and responsible creativity. The non-repeating bank contains 60 questions with three answer lanes and a teaching explanation after every gate. Music continues between students, accelerates during countdown pressure and changes to a victory arrangement at the finish.
 
