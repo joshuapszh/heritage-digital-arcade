@@ -32,6 +32,7 @@ let state = {
   run:[],
   challengeIndex:0,
   secondsLeft:6,
+  gateActive:false,
   locked:false,
   result:null,
   completed:0,
@@ -168,7 +169,7 @@ function cityBackdrop() {
 }
 
 function runnerRoad(inner, extraClass = '') {
-  return `<div class="runner-world ${extraClass}">${cityBackdrop()}<div class="speed-lines"></div><div class="road"><span class="lane-line line-one"></span><span class="lane-line line-two"></span><div class="data-coins">✦　✦　✦</div>${inner}<div class="runner-avatar lane-${state.lane}"><span class="runner-person">🏃</span><span class="runner-shield">🛡️</span><i class="footprint fp1">👣</i><i class="footprint fp2">👣</i></div></div></div>`;
+  return `<div class="runner-world ${extraClass}">${cityBackdrop()}<div class="speed-lines"></div><div class="road"><span class="lane-line line-one"></span><span class="lane-line line-two"></span><div class="data-coins">✦　✦　✦</div><div class="lane-glow glow-${state.lane}"></div><div class="runner-avatar lane-${state.lane}"><span class="runner-person">🏃</span><span class="runner-shield">🛡️</span><i class="footprint fp1">👣</i><i class="footprint fp2">👣</i></div></div>${inner}</div>`;
 }
 
 function practiceScreen() {
@@ -188,7 +189,8 @@ function runScreen() {
   const details = CATEGORY_DETAILS[challenge.category];
   const gates = challenge.answers.map((answer, lane) => `<div class="answer-gate lane-slot-${lane} ${gateClass(lane, challenge)}"><span class="gate-label">${lane === 0 ? '← LEFT' : lane === 1 ? 'CENTRE' : 'RIGHT →'}</span><b>${answer}</b></div>`).join('');
   const feedback = state.locked ? `<aside class="knowledge-card ${state.result.correct ? 'boost' : 'repair'}"><div><strong>${state.result.correct ? 'POWER BOOST!' : 'SHIELD REPAIR!'}</strong><span>Best lane: ${challenge.answers[challenge.correctLane]}</span></div><p>${challenge.why}</p><b>Remember: ${challenge.rule}</b></aside>` : '';
-  return shell(`<section class="sprint-card"><div class="question-banner"><div class="banner-row"><span class="category-chip">${details.icon} ${details.title}</span><span class="countdown"><b id="timeValue">${state.secondsLeft}</b>s</span></div><h1>${challenge.q}</h1><div class="timer-track"><span id="timerFill" style="width:${state.secondsLeft / GATE_SECONDS[state.mode] * 100}%"></span></div></div>${runnerRoad(`<div class="answer-gates" style="--gate-duration:${state.secondsLeft}s">${gates}</div>`, state.locked ? 'locked' : '')}${feedback}<div class="lane-instruction">${state.locked ? 'Knowledge boost—next gate approaching!' : `Choose your lane before the gate arrives　${keyCap('←')} ${keyCap('→')}`}</div></section>`);
+  const timerLabel = state.gateActive || state.locked ? `<b id="timeValue">${state.secondsLeft}</b>s` : '<b id="timeValue">READY</b>';
+  return shell(`<section class="sprint-card"><div class="question-banner"><div class="banner-row"><span class="category-chip">${details.icon} ${details.title}</span><span class="countdown">${timerLabel}</span></div><h1>${challenge.q}</h1><div class="timer-track"><span id="timerFill" style="width:${state.secondsLeft / GATE_SECONDS[state.mode] * 100}%"></span></div></div>${runnerRoad(`<div class="answer-gates ${state.gateActive || state.locked ? '' : 'waiting'}" style="--gate-duration:${state.secondsLeft}s">${gates}</div>`, state.locked ? 'locked' : '')}${feedback}<div class="lane-instruction">${state.locked ? 'Knowledge boost—next gate approaching!' : state.gateActive ? `Choose your lane before the gate arrives　${keyCap('←')} ${keyCap('→')}` : 'Read all three answers—get ready!'}</div></section>`);
 }
 
 function celebrationScreen() {
@@ -289,8 +291,16 @@ function startGate() {
   state.screen = 'run';
   state.lane = 1;
   state.locked = false;
+  state.gateActive = false;
   state.result = null;
   state.secondsLeft = GATE_SECONDS[state.mode];
+  render();
+  flowTimer = setTimeout(activateGate, 900);
+}
+
+function activateGate() {
+  if (state.settingsOpen || state.screen !== 'run' || state.locked) return;
+  state.gateActive = true;
   render();
   startCountdown();
 }
@@ -352,6 +362,7 @@ function returnToAttract() {
   state.challengeIndex = 0;
   state.completed = 0;
   state.locked = false;
+  state.gateActive = false;
   state.result = null;
   state.settingsOpen = false;
   musicStep = 0;
@@ -374,7 +385,8 @@ function closeSettings() {
 
 function resumeFlow() {
   if (state.screen === 'intro') scheduleIntro();
-  else if (state.screen === 'run') startCountdown();
+  else if (state.screen === 'run' && state.gateActive) startCountdown();
+  else if (state.screen === 'run') flowTimer = setTimeout(activateGate, 900);
   else if (state.screen === 'feedback') flowTimer = setTimeout(nextGate, FEEDBACK_MS);
   else if (state.screen === 'celebrate') flowTimer = setTimeout(returnToAttract, CELEBRATION_MS);
 }
