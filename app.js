@@ -12,8 +12,9 @@ const INTRO_SLIDES = [
   { icon:'📡', title:'Online Actions Travel', text:'Posts can be copied, shared and remembered. Pause before you add to your trail.', tags:['Copy','Share','Screenshot'] },
   { icon:'🛡️', title:'Sprint Safely', text:'Protect private details, check information and choose what is true, kind and safe.', tags:['Private','Trusted','Kind'] }
 ];
-const GATE_SECONDS = { junior:7, senior:6, mixed:6 };
-const FEEDBACK_MS = 1800;
+const GATE_SECONDS = { junior:10, senior:10, mixed:10 };
+const READING_PAUSE_MS = 1800;
+const FEEDBACK_MS = 2400;
 const CELEBRATION_MS = 6000;
 
 const savedNumber = (key, fallback) => {
@@ -280,7 +281,7 @@ function completePractice() {
   state.practiceDone = true;
   playEffect('correct');
   document.querySelector('.runner-world')?.classList.add('practice-success');
-  flowTimer = setTimeout(startGate, 1200);
+  flowTimer = setTimeout(startGate, 1500);
 }
 
 function startGate() {
@@ -292,7 +293,7 @@ function startGate() {
   state.result = null;
   state.secondsLeft = GATE_SECONDS[state.mode];
   render();
-  flowTimer = setTimeout(activateGate, 900);
+  flowTimer = setTimeout(activateGate, READING_PAUSE_MS);
 }
 
 function activateGate() {
@@ -382,7 +383,7 @@ function closeSettings() {
 
 function resumeFlow() {
   if (state.screen === 'run' && state.gateActive) startCountdown();
-  else if (state.screen === 'run') flowTimer = setTimeout(activateGate, 900);
+  else if (state.screen === 'run') flowTimer = setTimeout(activateGate, READING_PAUSE_MS);
   else if (state.screen === 'feedback') flowTimer = setTimeout(nextGate, FEEDBACK_MS);
   else if (state.screen === 'celebrate') flowTimer = setTimeout(returnToAttract, CELEBRATION_MS);
 }
@@ -491,7 +492,7 @@ function playMusicBeat() {
 function scheduleMusic() {
   clearTimeout(musicTimer);
   playMusicBeat();
-  const delay = state.screen === 'run' && state.secondsLeft <= 2 ? 115 : state.screen === 'run' ? 145 : state.screen === 'celebrate' ? 150 : 185;
+  const delay = state.screen === 'run' && state.secondsLeft <= 2 ? 145 : state.screen === 'run' ? 175 : state.screen === 'celebrate' ? 165 : 195;
   musicTimer = setTimeout(scheduleMusic, delay);
 }
 
