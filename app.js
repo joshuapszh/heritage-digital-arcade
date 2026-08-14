@@ -420,32 +420,78 @@ function tone(frequency, duration, type = 'square', volume = .075, delay = 0, ch
   oscillator.stop(context.currentTime + delay + duration);
 }
 
+function sweep(startFrequency, endFrequency, duration, type = 'sine', volume = .06, delay = 0, channel = 'fx') {
+  if ((channel === 'music' && state.musicMuted) || (channel === 'fx' && state.fxMuted)) return;
+  const context = ensureAudio();
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  const channelVolume = channel === 'music' ? state.musicVolume : state.fxVolume;
+  const start = context.currentTime + delay;
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(startFrequency, start);
+  oscillator.frequency.exponentialRampToValueAtTime(endFrequency, start + duration);
+  gain.gain.setValueAtTime(Math.max(.0001, volume * channelVolume), start);
+  gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+  oscillator.connect(gain).connect(context.destination);
+  oscillator.start(start);
+  oscillator.stop(start + duration);
+}
+
+function noiseBurst(duration = .04, volume = .02, delay = 0, channel = 'music') {
+  if ((channel === 'music' && state.musicMuted) || (channel === 'fx' && state.fxMuted)) return;
+  const context = ensureAudio();
+  const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * duration), context.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let index = 0; index < data.length; index += 1) data[index] = Math.random() * 2 - 1;
+  const source = context.createBufferSource();
+  const filter = context.createBiquadFilter();
+  const gain = context.createGain();
+  const channelVolume = channel === 'music' ? state.musicVolume : state.fxVolume;
+  const start = context.currentTime + delay;
+  source.buffer = buffer;
+  filter.type = 'highpass';
+  filter.frequency.value = 4200;
+  gain.gain.setValueAtTime(Math.max(.0001, volume * channelVolume), start);
+  gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+  source.connect(filter).connect(gain).connect(context.destination);
+  source.start(start);
+}
+
 function playEffect(type) {
   duckUntil = performance.now() + 550;
-  if (type === 'move') tone(330, .08, 'triangle', .045);
-  else if (type === 'tick') tone(880, .07, 'square', .05);
-  else if (type === 'correct') { tone(523,.11,'square',.08); tone(659,.11,'square',.085,.1); tone(784,.2,'square',.09,.2); }
-  else if (type === 'wrong') { tone(220,.14,'sawtooth',.075); tone(165,.22,'triangle',.07,.14); }
-  else if (type === 'win') [523,659,784,1047].forEach((note,index) => tone(note,.28,'square',.085,index*.14));
-  else { tone(392,.1,'square',.075); tone(523,.16,'square',.08,.1); }
+  if (type === 'move') { sweep(320, 680, .1, 'triangle', .075); tone(880, .045, 'square', .035, .07); }
+  else if (type === 'tick') { tone(1047, .07, 'square', .075); tone(1568, .045, 'triangle', .045, .045); }
+  else if (type === 'correct') { [523,659,784,1047].forEach((note,index) => tone(note,.16,'square',.085,index*.075)); sweep(700,1500,.28,'triangle',.045,.12); }
+  else if (type === 'wrong') { sweep(300,105,.34,'sawtooth',.09); tone(147,.3,'square',.055,.08); }
+  else if (type === 'win') { [523,659,784,1047,1319].forEach((note,index) => tone(note,.3,'square',.085,index*.11)); [262,392,523].forEach(note => tone(note,.7,'triangle',.035,.38)); noiseBurst(.18,.035,.38,'fx'); }
+  else { sweep(330,660,.16,'square',.075); tone(784,.18,'triangle',.06,.12); }
 }
 
 function playMusicBeat() {
   if (!state.audioUnlocked || state.musicMuted) return;
-  const normal = [262,330,392,330,294,370,440,370,330,392,494,392];
-  const rush = [392,494,587,494,440,554,659,554];
-  const victory = [523,659,784,1047,784,659,698,880,1047,880,784,659];
+  const normal = [523,659,784,659,587,740,880,740,659,784,988,784,587,698,880,698];
+  const rush = [784,988,1175,988,880,1109,1319,1109];
+  const victory = [1047,1319,1568,2093,1568,1319,1397,1760,2093,1760,1568,1319];
+  const bass = [131,131,147,147,165,165,147,196];
   const melody = state.screen === 'celebrate' ? victory : state.screen === 'run' && state.secondsLeft <= 2 ? rush : normal;
   const note = melody[musicStep % melody.length];
-  tone(note,.2,state.screen === 'celebrate' ? 'square' : 'triangle',.062,0,'music');
-  if ((state.screen === 'celebrate' || state.screen === 'run') && musicStep % 2 === 0) tone(note/2,.26,'triangle',.03,0,'music');
+  tone(note,.14,state.screen === 'celebrate' ? 'square' : 'triangle',.055,0,'music');
+  tone(note * 2,.055,'sine',.018,.065,'music');
+  if (musicStep % 2 === 0) {
+    tone(bass[Math.floor(musicStep / 2) % bass.length],.24,'sawtooth',.038,0,'music');
+    sweep(105,52,.12,'sine',.052,0,'music');
+  } else {
+    noiseBurst(.035,.023,0,'music');
+  }
+  if (musicStep % 4 === 2) noiseBurst(.075,.032,0,'music');
+  if (state.screen === 'run') tone(note / 2,.18,'square',.022,.035,'music');
   musicStep += 1;
 }
 
 function scheduleMusic() {
   clearTimeout(musicTimer);
   playMusicBeat();
-  const delay = state.screen === 'run' && state.secondsLeft <= 2 ? 145 : state.screen === 'celebrate' ? 180 : 240;
+  const delay = state.screen === 'run' && state.secondsLeft <= 2 ? 115 : state.screen === 'run' ? 145 : state.screen === 'celebrate' ? 150 : 185;
   musicTimer = setTimeout(scheduleMusic, delay);
 }
 
