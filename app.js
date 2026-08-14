@@ -50,15 +50,25 @@ const categoryDetails = {
 };
 
 const introSlides = [
-  { icon: '💡', title: 'Digital Literacy', text: 'Using technology to learn, create and communicate.' },
-  { icon: '🛡️', title: 'Think Smart. Stay Safe.', text: 'Protect private information and pause before you click.' },
-  { icon: '💙', title: 'Be Kind Online', text: 'Every message and post leaves a digital footprint.' }
+  { icon: '💡', title: 'Digital Literacy', text: 'Using technology to learn, create and communicate—smartly, safely and kindly.' },
+  { icon: '👣', title: 'Your Digital Footprint', text: 'The trail of clues you leave whenever you use technology.', examples: ['🔎 Searches', '📸 Photos', '💬 Chats', '🎮 Games'] },
+  { icon: '📡', title: 'Online Actions Travel', text: 'Posts and pictures can be copied, shared and remembered—even after deletion.', examples: ['Copy', 'Share', 'Screenshot'] },
+  { icon: '✨', title: 'Make It Positive', text: 'Before you post, pause and ask: Is it true, kind and safe?', examples: ['True?', 'Kind?', 'Safe?'] }
 ];
+
+const ROUND_COUNT = 5;
+const ROUND_SECONDS = 6;
+const ROUND_MINIMUM_MS = 6500;
+const FEEDBACK_MINIMUM_MS = 2300;
+const INTRO_SLIDE_MS = 2600;
+const CELEBRATION_MS = 7000;
 
 const storageNumber = (key, fallback) => {
   const value = Number(localStorage.getItem(key));
   return Number.isFinite(value) ? value : fallback;
 };
+
+const currentAudioMix = localStorage.getItem('heritageAudioMix') === '2';
 
 let state = {
   screen: 'attract',
@@ -66,15 +76,21 @@ let state = {
   roundIndex: 0,
   rounds: [],
   feedback: null,
-  secondsLeft: 8,
+  secondsLeft: ROUND_SECONDS,
   settingsOpen: false,
   audioUnlocked: false,
   musicMuted: localStorage.getItem('heritageMusicMuted') === 'true',
   fxMuted: localStorage.getItem('heritageFxMuted') === 'true',
   reducedMotion: localStorage.getItem('heritageReducedMotion') === 'true',
-  musicVolume: storageNumber('heritageMusicVolume', 0.55),
-  fxVolume: storageNumber('heritageFxVolume', 0.8)
+  musicVolume: currentAudioMix ? storageNumber('heritageMusicVolume', 0.78) : 0.78,
+  fxVolume: currentAudioMix ? storageNumber('heritageFxVolume', 0.95) : 0.95
 };
+
+if (!currentAudioMix) {
+  localStorage.setItem('heritageAudioMix', '2');
+  localStorage.setItem('heritageMusicVolume', state.musicVolume);
+  localStorage.setItem('heritageFxVolume', state.fxVolume);
+}
 
 let audioContext = null;
 let musicLoop = null;
@@ -112,8 +128,9 @@ function drawChallenge(category) {
 }
 
 function prepareRun() {
-  const categories = ['privacy', 'scam', 'footprint'];
-  const correctSides = shuffled([0, 1, Math.random() < 0.5 ? 0 : 1]);
+  const coreCategories = ['privacy', 'scam', 'footprint'];
+  const categories = [...coreCategories, ...shuffled(coreCategories).slice(0, 2)];
+  const correctSides = shuffled([0, 1, 0, 1, Math.random() < 0.5 ? 0 : 1]);
   state.rounds = categories.map((category, index) => {
     const challenge = drawChallenge(category);
     const correctSide = correctSides[index];
@@ -138,7 +155,7 @@ function logo() {
 
 function progress() {
   if (state.screen === 'attract' || state.screen === 'intro') return '';
-  return `<div class="progress" aria-label="Mission progress">${[0, 1, 2].map(index =>
+  return `<div class="progress" aria-label="Mission progress">${Array.from({ length: ROUND_COUNT }, (_, index) =>
     `<span class="dot ${index < state.roundIndex || state.screen === 'celebrate' ? 'done' : ''}"></span>`
   ).join('')}</div>`;
 }
@@ -172,7 +189,7 @@ function shell(content) {
   const label = state.screen === 'attract' ? 'READY PLAYER ONE'
     : state.screen === 'intro' ? 'DIGITAL LITERACY'
     : state.screen === 'celebrate' ? 'MISSION COMPLETE'
-    : `MISSION ${state.roundIndex + 1} / 3`;
+    : `MISSION ${state.roundIndex + 1} / ${ROUND_COUNT}`;
   return `<div class="shell">
     <header class="topbar">
       <div class="brand">${logo()}<span class="brandtext">DIGITAL LITERACY ARCADE</span></div>
@@ -191,7 +208,7 @@ function attractScreen() {
     <p class="subtitle">Create. Explore. Stay Safe.</p>
     <div class="defender-orb">🛡️</div>
     <div class="start-prompt"><span class="arrow-key">←</span><b>Press either arrow to enter</b><span class="arrow-key">→</span></div>
-    <p class="tip">Three quick missions • About 50 seconds</p>
+    <p class="tip">Five fast missions • About 50 seconds</p>
   </div>`);
 }
 
@@ -203,6 +220,7 @@ function introScreen() {
     <div class="eyebrow">What is Digital Literacy?</div>
     <h1 class="title compact-title">${slide.title}</h1>
     <p class="subtitle">${slide.text}</p>
+    ${slide.examples ? `<div class="intro-examples">${slide.examples.map(example => `<span>${example}</span>`).join('')}</div>` : ''}
     <div class="intro-progress">${introSlides.map((_, index) => `<span class="${index <= state.introStep ? 'active' : ''}"></span>`).join('')}</div>
   </div>`);
 }
@@ -220,7 +238,7 @@ function challengeScreen() {
   const dashClass = result?.side === 0 ? 'dash-left' : result?.side === 1 ? 'dash-right' : '';
   return shell(`<div class="card challenge-card" aria-live="polite">
     <div class="challenge-topline"><div class="eyebrow">${details.name}</div><div class="countdown"><span id="timeValue">${state.secondsLeft}</span>s</div></div>
-    <div class="timer-track"><span id="timerFill" style="width:${state.secondsLeft / 8 * 100}%"></span></div>
+    <div class="timer-track"><span id="timerFill" style="width:${state.secondsLeft / ROUND_SECONDS * 100}%"></span></div>
     <div class="mission-icon challenge-icon">${details.icon}</div>
     <h1 class="subtitle challenge-question">${round.prompt}</h1>
     <div class="portal-grid">
@@ -319,14 +337,15 @@ function scheduleIntro() {
     } else {
       beginQuestion();
     }
-  }, 2200);
+  }, INTRO_SLIDE_MS);
 }
 
 function beginQuestion() {
   clearFlowTimers();
   state.screen = 'question';
   state.feedback = null;
-  state.secondsLeft = 8;
+  state.secondsLeft = ROUND_SECONDS;
+  state.roundStartedAt = performance.now();
   render();
   startCountdown();
 }
@@ -335,7 +354,7 @@ function updateCountdown() {
   const value = document.getElementById('timeValue');
   const fill = document.getElementById('timerFill');
   if (value) value.textContent = state.secondsLeft;
-  if (fill) fill.style.width = `${Math.max(0, state.secondsLeft / 8 * 100)}%`;
+  if (fill) fill.style.width = `${Math.max(0, state.secondsLeft / ROUND_SECONDS * 100)}%`;
 }
 
 function startCountdown() {
@@ -357,12 +376,14 @@ function resolveChoice(side) {
   state.feedback = { side, correct, timedOut: side === null };
   playEffect(correct ? 'correct' : side === null ? 'timeout' : 'wrong');
   render();
-  flowTimer = setTimeout(nextRound, 2400);
+  const elapsed = performance.now() - state.roundStartedAt;
+  const feedbackDelay = Math.max(FEEDBACK_MINIMUM_MS, ROUND_MINIMUM_MS - elapsed);
+  flowTimer = setTimeout(nextRound, feedbackDelay);
 }
 
 function nextRound() {
   if (state.settingsOpen) return;
-  if (state.roundIndex < 2) {
+  if (state.roundIndex < ROUND_COUNT - 1) {
     state.roundIndex += 1;
     beginQuestion();
   } else {
@@ -376,7 +397,7 @@ function showCelebration() {
   musicStep = 0;
   playEffect('win');
   render();
-  flowTimer = setTimeout(returnToAttract, 8000);
+  flowTimer = setTimeout(returnToAttract, CELEBRATION_MS);
 }
 
 function returnToAttract() {
@@ -386,7 +407,7 @@ function returnToAttract() {
   state.roundIndex = 0;
   state.rounds = [];
   state.feedback = null;
-  state.secondsLeft = 8;
+  state.secondsLeft = ROUND_SECONDS;
   state.settingsOpen = false;
   musicStep = 0;
   render();
@@ -409,8 +430,8 @@ function closeSettings() {
 function resumeFlow() {
   if (state.screen === 'intro') scheduleIntro();
   else if (state.screen === 'question' && !state.feedback) startCountdown();
-  else if (state.screen === 'question' && state.feedback) flowTimer = setTimeout(nextRound, 2400);
-  else if (state.screen === 'celebrate') flowTimer = setTimeout(returnToAttract, 8000);
+  else if (state.screen === 'question' && state.feedback) flowTimer = setTimeout(nextRound, FEEDBACK_MINIMUM_MS);
+  else if (state.screen === 'celebrate') flowTimer = setTimeout(returnToAttract, CELEBRATION_MS);
 }
 
 function reshuffleDeck() {
@@ -424,13 +445,13 @@ function ensureAudio() {
   return audioContext;
 }
 
-function tone(frequency, duration, type = 'square', volume = 0.05, delay = 0, channel = 'fx') {
+function tone(frequency, duration, type = 'square', volume = 0.075, delay = 0, channel = 'fx') {
   if ((channel === 'music' && state.musicMuted) || (channel === 'fx' && state.fxMuted)) return;
   const context = ensureAudio();
   const oscillator = context.createOscillator();
   const gain = context.createGain();
   const channelVolume = channel === 'music' ? state.musicVolume : state.fxVolume;
-  const duck = channel === 'music' && performance.now() < duckUntil ? 0.3 : 1;
+  const duck = channel === 'music' && performance.now() < duckUntil ? 0.55 : 1;
   oscillator.type = type;
   oscillator.frequency.value = frequency;
   gain.gain.setValueAtTime(Math.max(0.0001, volume * channelVolume * duck), context.currentTime + delay);
@@ -443,13 +464,13 @@ function tone(frequency, duration, type = 'square', volume = 0.05, delay = 0, ch
 function playEffect(type) {
   duckUntil = performance.now() + 650;
   if (type === 'correct') {
-    tone(523, 0.12); tone(659, 0.12, 'square', 0.05, 0.12); tone(784, 0.22, 'square', 0.055, 0.24);
+    tone(523, 0.12, 'square', 0.08); tone(659, 0.12, 'square', 0.085, 0.12); tone(784, 0.22, 'square', 0.09, 0.24);
   } else if (type === 'wrong' || type === 'timeout') {
-    tone(220, 0.14, 'sawtooth'); tone(type === 'timeout' ? 196 : 165, 0.22, 'triangle', 0.04, 0.14);
+    tone(220, 0.14, 'sawtooth', 0.075); tone(type === 'timeout' ? 196 : 165, 0.22, 'triangle', 0.07, 0.14);
   } else if (type === 'win') {
-    [523, 659, 784, 1047].forEach((frequency, index) => tone(frequency, 0.3, 'square', 0.05, index * 0.15));
+    [523, 659, 784, 1047].forEach((frequency, index) => tone(frequency, 0.3, 'square', 0.085, index * 0.15));
   } else {
-    tone(392, 0.1); tone(523, 0.16, 'square', 0.045, 0.1);
+    tone(392, 0.1, 'square', 0.075); tone(523, 0.16, 'square', 0.08, 0.1);
   }
 }
 
@@ -459,8 +480,8 @@ function playMusicNote() {
   const victory = [523, 659, 784, 1047, 784, 659, 698, 880, 1047, 880, 784, 659];
   const melody = state.screen === 'celebrate' ? victory : normal;
   const note = melody[musicStep % melody.length];
-  tone(note, 0.2, state.screen === 'celebrate' ? 'square' : 'triangle', 0.032, 0, 'music');
-  if (state.screen === 'celebrate' && musicStep % 2 === 0) tone(note / 2, 0.28, 'triangle', 0.018, 0, 'music');
+  tone(note, 0.21, state.screen === 'celebrate' ? 'square' : 'triangle', 0.062, 0, 'music');
+  if (state.screen === 'celebrate' && musicStep % 2 === 0) tone(note / 2, 0.29, 'triangle', 0.035, 0, 'music');
   musicStep += 1;
 }
 

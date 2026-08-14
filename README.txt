@@ -17,5 +17,5 @@ S = teacher settings
 M = music on/off
 R = reset
 
-The game draws three challenges from a non-repeating pool of 36.
+The game explains digital footprints, then draws five challenges from a non-repeating pool of 36.
 Use the visible settings button to control music, effects, animation, fullscreen, restart and reshuffle.
