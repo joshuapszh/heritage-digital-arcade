@@ -2,17 +2,18 @@
 
 ## [Launch Digital Defenders](https://joshuapszh.github.io/heritage-digital-arcade/)
 
-A colourful, one-screen arcade experience introducing Grade 3–6 students to online safety and positive digital footprints at Heritage Academy.
+A colourful, approximately 50-second arcade experience introducing Grade 3–6 students to Digital Literacy at Heritage Academy.
 
 ### How to play
 
 1. Open the launch link on a Mac or Windows computer.
-2. Click **Enter the Digital Arcade** to start the music and request fullscreen.
-3. Select answers with the mouse or the **1**, **2** and **3** keys.
-4. Press **Space** to advance.
-5. Use the visible settings button for volume, mute, restart and fullscreen controls.
+2. Press **←** or **→** to enter, start the music and request fullscreen.
+3. Watch the short introduction to Digital Literacy.
+4. Choose the left or right answer using **←** or **→**.
+5. Press **↓** after the achievement screen for the next student.
+6. Teachers can click the settings button or press **S** for volume, animation, restart, reshuffle and fullscreen controls.
 
-The music continues throughout the missions and changes to a victory arrangement on the achievement screen.
+The game draws three challenges from a non-repeating pool of 36. Music continues between students and changes to a victory arrangement on the achievement screen.
 
 ### Offline backup
 
