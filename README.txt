@@ -1,4 +1,4 @@
-HERITAGE DIGITAL ARCADE — QUICK START
+HERITAGE CYBER SPRINT — QUICK START
 
 ONLINE — MAC OR WINDOWS
 Open https://joshuapszh.github.io/heritage-digital-arcade/
@@ -17,5 +17,5 @@ S = teacher settings
 M = music on/off
 R = reset
 
-The game explains digital footprints, then draws five challenges from a non-repeating pool of 36.
-Use the visible settings button to control music, effects, animation, fullscreen, restart and reshuffle.
+The three-lane runner explains Digital Literacy, includes a practice gate, and draws five challenges from a non-repeating pool of 60.
+Use the visible settings button to select Junior, Senior or Mixed difficulty and control music, effects, animation, fullscreen, restart and reshuffle.

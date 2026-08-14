@@ -1,308 +1,221 @@
-const challengeBank = {
-  privacy: [
-    { id: 'p01', prompt: 'Which password has the strongest shield?', good: 'Blue!Rocket7Cloud', bad: 'football10', tip: 'Long, surprising passwords are harder to guess.' },
-    { id: 'p02', prompt: 'A friend asks for your game password. What should you do?', good: 'Keep it secret', bad: 'Tell your friend', tip: 'Passwords are private—even from good friends.' },
-    { id: 'p03', prompt: 'A game asks for your home address. What is the smart move?', good: 'Ask a trusted adult', bad: 'Type it in', tip: 'Your home address is personal information.' },
-    { id: 'p04', prompt: 'An app wants to share your live location. What should you do?', good: 'Check with an adult', bad: 'Allow it quickly', tip: 'Only share location with permission and a clear reason.' },
-    { id: 'p05', prompt: 'You finish using a shared computer. What comes next?', good: 'Log out', bad: 'Leave it open', tip: 'Logging out protects your account.' },
-    { id: 'p06', prompt: 'You need a password for a new app. Which plan is safer?', good: 'Use a different password', bad: 'Reuse every password', tip: 'Different passwords stop one leak from opening every account.' },
-    { id: 'p07', prompt: 'Which public gamer name protects your identity?', good: 'PixelPanda42', bad: 'AmyGrade4Home', tip: 'A username should not reveal your real identity or location.' },
-    { id: 'p08', prompt: 'A drawing app suddenly requests camera access. What should you do?', good: 'Pause and check why', bad: 'Always allow it', tip: 'Apps should only get permissions they truly need.' },
-    { id: 'p09', prompt: 'Which password clue is safer?', good: 'Three random words', bad: 'Your birthday', tip: 'Birthdays and names are easy for others to discover.' },
-    { id: 'p10', prompt: 'Who should be able to see your personal profile?', good: 'People you approve', bad: 'Everyone online', tip: 'Privacy settings help you control your audience.' },
-    { id: 'p11', prompt: 'A quiz asks for your phone number to show your result. What now?', good: 'Skip it and ask', bad: 'Enter the number', tip: 'Do not trade personal information for a quiz result.' },
-    { id: 'p12', prompt: 'You hear that an app leaked passwords. What should you do?', good: 'Change yours with help', bad: 'Ignore the news', tip: 'Change exposed passwords and tell a trusted adult.' }
-  ],
-  scam: [
-    { id: 's01', prompt: 'A pop-up says, “You won! Claim your prize now!”', good: 'Close it and check', bad: 'Click immediately', tip: 'Unexpected prizes often use excitement to make us rush.' },
-    { id: 's02', prompt: 'An unknown sender emails you an attachment. What is safer?', good: 'Do not open it', bad: 'Open it to look', tip: 'Unknown attachments can contain harmful software.' },
-    { id: 's03', prompt: 'A message says your game account will close in five minutes.', good: 'Check the official app', bad: 'Use its urgent link', tip: 'Scams create urgency so we act without thinking.' },
-    { id: 's04', prompt: 'A friend messages, “Send me the login code you just received.”', good: 'Ask them another way', bad: 'Send the code', tip: 'Login codes are secret. A friend’s account may be hacked.' },
-    { id: 's05', prompt: 'A website promises unlimited free game coins.', good: 'Leave the website', bad: 'Enter your login', tip: 'Offers that seem too good to be true usually are.' },
-    { id: 's06', prompt: 'A flashing warning says, “Your device has 99 viruses!”', good: 'Close it and tell an adult', bad: 'Buy its cleaner', tip: 'Scary pop-ups try to pressure you into clicking or paying.' },
-    { id: 's07', prompt: 'You find a mystery QR code with no explanation.', good: 'Ask before scanning', bad: 'Scan it at once', tip: 'QR codes can hide unsafe links.' },
-    { id: 's08', prompt: 'A survey promises a free tablet if you answer personal questions.', good: 'Close the survey', bad: 'Share your details', tip: 'Free-gift surveys may collect personal information.' },
-    { id: 's09', prompt: '“Game Support” asks you to send your password.', good: 'Report the message', bad: 'Send the password', tip: 'Real support teams should never need your password.' },
-    { id: 's10', prompt: 'A website tells you to install an unknown “speed booster.”', good: 'Check with an adult', bad: 'Install it', tip: 'Only install trusted software with permission.' },
-    { id: 's11', prompt: 'A stranger invites you to a private video chat.', good: 'Decline and tell an adult', bad: 'Join the call', tip: 'Do not move into private chats with strangers.' },
-    { id: 's12', prompt: 'A school login link has strange spelling in its address.', good: 'Use the usual school site', bad: 'Try the strange link', tip: 'Check web addresses carefully before signing in.' }
-  ],
-  footprint: [
-    { id: 'f01', prompt: 'You took a funny photo of a classmate. Before posting it...', good: 'Ask permission', bad: 'Post it secretly', tip: 'People should have a say in how their image is shared.' },
-    { id: 'f02', prompt: 'A classmate shares a creative project. What comment helps?', good: '“Great idea—well done!”', bad: '“That looks terrible.”', tip: 'Kind feedback builds a positive digital community.' },
-    { id: 'f03', prompt: 'You delete a post. Could someone still have a copy?', good: 'Yes, screenshots exist', bad: 'No, it is gone forever', tip: 'Online posts can be copied before they are deleted.' },
-    { id: 'f04', prompt: 'A group chat shares a rumour about a student. What should you do?', good: 'Do not forward it', bad: 'Send it to everyone', tip: 'Forwarding rumours can harm people and your footprint.' },
-    { id: 'f05', prompt: 'You feel angry while writing a message. What is the smart move?', good: 'Pause before sending', bad: 'Send it in capitals', tip: 'Pause until you can communicate calmly and kindly.' },
-    { id: 'f06', prompt: 'You use someone’s digital artwork in a project. What should you do?', good: 'Credit the creator', bad: 'Claim it as yours', tip: 'Responsible creators acknowledge other people’s work.' },
-    { id: 'f07', prompt: 'You see someone being bullied in a class chat.', good: 'Save evidence and report it', bad: 'Join in for fun', tip: 'Support others and tell a trusted adult.' },
-    { id: 'f08', prompt: 'A friend sends you a private joke. What respects your friend?', good: 'Keep it private', bad: 'Post a screenshot', tip: 'Private messages should not be shared without permission.' },
-    { id: 'f09', prompt: 'Which comment improves a group project?', good: '“Could we make the title clearer?”', bad: '“This is useless.”', tip: 'Specific, respectful feedback helps everyone improve.' },
-    { id: 'f10', prompt: 'A photo clearly shows your street sign. Before posting...', good: 'Crop it or keep it private', bad: 'Share it publicly', tip: 'Photos can accidentally reveal personal information.' },
-    { id: 'f11', prompt: 'Some classmates are excluded from an online group on purpose.', good: 'Include them or get help', bad: 'Laugh about it', tip: 'Kind digital citizens help others feel included.' },
-    { id: 'f12', prompt: 'Before posting, which question should you ask?', good: '“Is it true, kind and safe?”', bad: '“Will it get attention?”', tip: 'Think about how a post may affect you and others.' }
-  ]
+const CATEGORIES = ['privacy', 'safety', 'footprint', 'information', 'creativity'];
+const CATEGORY_DETAILS = {
+  privacy: { icon:'🔐', short:'Privacy', title:'Privacy Power' },
+  safety: { icon:'🛡️', short:'Safety', title:'Safety Scanner' },
+  footprint: { icon:'👣', short:'Footprint', title:'Footprint Trail' },
+  information: { icon:'🔎', short:'Information', title:'Truth Tracker' },
+  creativity: { icon:'🎨', short:'Creativity', title:'Creator Code' }
 };
-
-const categoryDetails = {
-  privacy: { icon: '🔐', name: 'Privacy Power' },
-  scam: { icon: '🕵️', name: 'Scam Scanner' },
-  footprint: { icon: '👣', name: 'Footprint Quest' }
-};
-
-const introSlides = [
-  { icon: '💡', title: 'Digital Literacy', text: 'Using technology to learn, create and communicate—smartly, safely and kindly.' },
-  { icon: '👣', title: 'Your Digital Footprint', text: 'The trail of clues you leave whenever you use technology.', examples: ['🔎 Searches', '📸 Photos', '💬 Chats', '🎮 Games'] },
-  { icon: '📡', title: 'Online Actions Travel', text: 'Posts and pictures can be copied, shared and remembered—even after deletion.', examples: ['Copy', 'Share', 'Screenshot'] },
-  { icon: '✨', title: 'Make It Positive', text: 'Before you post, pause and ask: Is it true, kind and safe?', examples: ['True?', 'Kind?', 'Safe?'] }
+const INTRO_SLIDES = [
+  { icon:'💡', title:'Digital Literacy', text:'Using technology to learn, create and communicate—smartly, safely and kindly.', tags:['Learn','Create','Communicate'] },
+  { icon:'👣', title:'Your Digital Footprint', text:'Every search, message, game and post can leave a trail of information about you.', tags:['Searches','Photos','Chats','Games'] },
+  { icon:'📡', title:'Online Actions Travel', text:'Posts can be copied, shared and remembered. Pause before you add to your trail.', tags:['Copy','Share','Screenshot'] },
+  { icon:'🛡️', title:'Sprint Safely', text:'Protect private details, check information and choose what is true, kind and safe.', tags:['Private','Trusted','Kind'] }
 ];
+const GATE_SECONDS = { junior:7, senior:6, mixed:6 };
+const INTRO_MS = 2400;
+const FEEDBACK_MS = 1800;
+const CELEBRATION_MS = 6000;
 
-const ROUND_COUNT = 5;
-const ROUND_SECONDS = 6;
-const ROUND_MINIMUM_MS = 6500;
-const FEEDBACK_MINIMUM_MS = 2300;
-const INTRO_SLIDE_MS = 2600;
-const CELEBRATION_MS = 7000;
-
-const storageNumber = (key, fallback) => {
+const savedNumber = (key, fallback) => {
   const value = Number(localStorage.getItem(key));
   return Number.isFinite(value) ? value : fallback;
 };
 
-const currentAudioMix = localStorage.getItem('heritageAudioMix') === '2';
-
 let state = {
-  screen: 'attract',
-  introStep: 0,
-  roundIndex: 0,
-  rounds: [],
-  feedback: null,
-  secondsLeft: ROUND_SECONDS,
-  settingsOpen: false,
-  audioUnlocked: false,
-  musicMuted: localStorage.getItem('heritageMusicMuted') === 'true',
-  fxMuted: localStorage.getItem('heritageFxMuted') === 'true',
-  reducedMotion: localStorage.getItem('heritageReducedMotion') === 'true',
-  musicVolume: currentAudioMix ? storageNumber('heritageMusicVolume', 0.78) : 0.78,
-  fxVolume: currentAudioMix ? storageNumber('heritageFxVolume', 0.95) : 0.95
+  screen:'attract',
+  mode:localStorage.getItem('cyberSprintMode') || 'mixed',
+  introStep:0,
+  lane:1,
+  practiceTarget:0,
+  practiceDone:false,
+  run:[],
+  challengeIndex:0,
+  secondsLeft:6,
+  locked:false,
+  result:null,
+  completed:0,
+  settingsOpen:false,
+  audioUnlocked:false,
+  musicMuted:localStorage.getItem('heritageMusicMuted') === 'true',
+  fxMuted:localStorage.getItem('heritageFxMuted') === 'true',
+  reducedMotion:localStorage.getItem('heritageReducedMotion') === 'true',
+  musicVolume:savedNumber('heritageMusicVolume', .78),
+  fxVolume:savedNumber('heritageFxVolume', .95)
 };
 
-if (!currentAudioMix) {
-  localStorage.setItem('heritageAudioMix', '2');
-  localStorage.setItem('heritageMusicVolume', state.musicVolume);
-  localStorage.setItem('heritageFxVolume', state.fxVolume);
-}
-
-let audioContext = null;
-let musicLoop = null;
-let musicStep = 0;
-let duckUntil = 0;
 let flowTimer = null;
 let countdownTimer = null;
+let audioContext = null;
+let musicTimer = null;
+let musicStep = 0;
+let duckUntil = 0;
 
 function shuffled(items) {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
+  const copy = [...items];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(Math.random() * (index + 1));
+    [copy[index], copy[swap]] = [copy[swap], copy[index]];
   }
-  return result;
+  return copy;
+}
+
+function deckKey(category) {
+  return `cyberSprintUsed-${state.mode}-${category}`;
+}
+
+function eligibleQuestions(category) {
+  return state.mode === 'mixed' ? CHALLENGE_BANK[category] : CHALLENGE_BANK[category].filter(item => item.level === state.mode);
 }
 
 function getUsed(category) {
-  try { return JSON.parse(localStorage.getItem(`heritageUsed-${category}`) || '[]'); }
+  try { return JSON.parse(localStorage.getItem(deckKey(category)) || '[]'); }
   catch { return []; }
 }
 
-function drawChallenge(category) {
-  const bank = challengeBank[category];
+function drawQuestion(category) {
+  const pool = eligibleQuestions(category);
   let used = getUsed(category);
-  let available = bank.filter(challenge => !used.includes(challenge.id));
+  let available = pool.filter(question => !used.includes(question.id));
   if (!available.length) {
     used = [];
-    available = [...bank];
+    available = [...pool];
   }
-  const challenge = available[Math.floor(Math.random() * available.length)];
-  used.push(challenge.id);
-  localStorage.setItem(`heritageUsed-${category}`, JSON.stringify(used));
-  return challenge;
+  const question = available[Math.floor(Math.random() * available.length)];
+  used.push(question.id);
+  localStorage.setItem(deckKey(category), JSON.stringify(used));
+  return question;
 }
 
 function prepareRun() {
-  const coreCategories = ['privacy', 'scam', 'footprint'];
-  const categories = [...coreCategories, ...shuffled(coreCategories).slice(0, 2)];
-  const correctSides = shuffled([0, 1, 0, 1, Math.random() < 0.5 ? 0 : 1]);
-  state.rounds = categories.map((category, index) => {
-    const challenge = drawChallenge(category);
-    const correctSide = correctSides[index];
-    return {
-      ...challenge,
-      category,
-      correctSide,
-      choices: correctSide === 0 ? [challenge.good, challenge.bad] : [challenge.bad, challenge.good]
-    };
+  const plannedCorrectLanes = shuffled([0, 1, 2, Math.floor(Math.random() * 3), Math.floor(Math.random() * 3)]);
+  state.run = shuffled(CATEGORIES).map((category, index) => {
+    const question = drawQuestion(category);
+    const correctLane = plannedCorrectLanes[index];
+    const distractors = shuffled(question.a.slice(1));
+    const answers = [...distractors];
+    answers.splice(correctLane, 0, question.a[0]);
+    return { ...question, category, answers, correctLane };
   });
-  state.roundIndex = 0;
-  state.feedback = null;
+  state.challengeIndex = 0;
+  state.completed = 0;
 }
 
-function usedChallengeCount() {
-  return ['privacy', 'scam', 'footprint'].reduce((total, category) => total + getUsed(category).length, 0);
+function usedCount() {
+  return CATEGORIES.reduce((sum, category) => sum + getUsed(category).length, 0);
+}
+
+function totalAvailable() {
+  return CATEGORIES.reduce((sum, category) => sum + eligibleQuestions(category).length, 0);
 }
 
 function logo() {
   return '<img class="logo" src="heritage-logo.png" alt="Heritage Academy">';
 }
 
-function progress() {
-  if (state.screen === 'attract' || state.screen === 'intro') return '';
-  return `<div class="progress" aria-label="Mission progress">${Array.from({ length: ROUND_COUNT }, (_, index) =>
-    `<span class="dot ${index < state.roundIndex || state.screen === 'celebrate' ? 'done' : ''}"></span>`
-  ).join('')}</div>`;
+function modeName() {
+  return state.mode === 'junior' ? 'Junior · Grades 3–4' : state.mode === 'senior' ? 'Senior · Grades 5–6' : 'Mixed · Grades 3–6';
+}
+
+function progressStrip() {
+  if (!['run','feedback','celebrate'].includes(state.screen)) return '';
+  return `<div class="sprint-progress" aria-label="Sprint progress">${state.run.map((challenge, index) => {
+    const details = CATEGORY_DETAILS[challenge.category];
+    return `<span class="${index < state.completed || state.screen === 'celebrate' ? 'cleared' : index === state.challengeIndex ? 'current' : ''}" title="${details.title}">${details.icon}</span>`;
+  }).join('')}</div>`;
 }
 
 function settingsPanel() {
   return `<div class="settings-backdrop ${state.settingsOpen ? 'open' : ''}" id="settingsBackdrop">
     <section class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-      <div class="settings-heading">
-        <div><div class="eyebrow">Teacher controls</div><h2 id="settingsTitle">Settings</h2></div>
-        <button class="icon-button close-settings" aria-label="Close settings">×</button>
-      </div>
-      <label class="setting-row" for="musicVolume"><span>Music volume</span><output id="musicOutput">${Math.round(state.musicVolume * 100)}%</output></label>
-      <input id="musicVolume" type="range" min="0" max="1" step="0.05" value="${state.musicVolume}">
+      <div class="settings-heading"><div><div class="eyebrow">Teacher controls</div><h2 id="settingsTitle">Cyber Sprint Settings</h2></div><button class="icon-button close-settings" aria-label="Close settings">×</button></div>
+      <div class="setting-label">Difficulty</div>
+      <div class="mode-grid">${['junior','mixed','senior'].map(mode => `<button class="mode-button ${state.mode === mode ? 'active' : ''}" data-mode="${mode}">${mode === 'junior' ? 'Junior' : mode === 'senior' ? 'Senior' : 'Mixed'}</button>`).join('')}</div>
+      <label class="setting-row" for="musicVolume"><span>Music</span><output id="musicOutput">${Math.round(state.musicVolume * 100)}%</output></label>
+      <input id="musicVolume" type="range" min="0" max="1" step=".05" value="${state.musicVolume}">
       <button class="action secondary wide" id="musicMute">${state.musicMuted ? 'Turn music on' : 'Mute music'}</button>
-      <label class="setting-row" for="fxVolume"><span>Sound effects</span><output id="fxOutput">${Math.round(state.fxVolume * 100)}%</output></label>
-      <input id="fxVolume" type="range" min="0" max="1" step="0.05" value="${state.fxVolume}">
+      <label class="setting-row" for="fxVolume"><span>Effects</span><output id="fxOutput">${Math.round(state.fxVolume * 100)}%</output></label>
+      <input id="fxVolume" type="range" min="0" max="1" step=".05" value="${state.fxVolume}">
       <button class="action secondary wide" id="fxMute">${state.fxMuted ? 'Turn effects on' : 'Mute effects'}</button>
       <button class="action secondary wide" id="motionToggle">${state.reducedMotion ? 'Use full animation' : 'Reduce animation'}</button>
-      <div class="deck-status"><b>Challenge deck:</b> ${usedChallengeCount()} of 36 used</div>
-      <div class="settings-actions">
-        <button class="action" id="resetGame">Next student</button>
-        <button class="action secondary" id="shuffleDeck">Reshuffle all</button>
-        <button class="action secondary" id="fullscreenToggle">${document.fullscreenElement ? 'Exit fullscreen' : 'Enter fullscreen'}</button>
-      </div>
-      <p class="small">Student keys: ← or → choose · ↓ next student · Teacher keys: S settings · M music · R reset</p>
+      <div class="deck-status"><b>${modeName()}</b><br>${usedCount()} of ${totalAvailable()} challenges used</div>
+      <div class="settings-actions"><button class="action" id="nextStudent">Next student</button><button class="action secondary" id="shuffleDeck">Reshuffle deck</button><button class="action secondary" id="fullscreenToggle">${document.fullscreenElement ? 'Exit fullscreen' : 'Enter fullscreen'}</button></div>
+      <p class="small">Students: ← → move · ↓ next student. Teachers: S settings · M music · R reset.</p>
     </section>
   </div>`;
 }
 
 function shell(content) {
-  const label = state.screen === 'attract' ? 'READY PLAYER ONE'
-    : state.screen === 'intro' ? 'DIGITAL LITERACY'
-    : state.screen === 'celebrate' ? 'MISSION COMPLETE'
-    : `MISSION ${state.roundIndex + 1} / ${ROUND_COUNT}`;
-  return `<div class="shell">
-    <header class="topbar">
-      <div class="brand">${logo()}<span class="brandtext">DIGITAL LITERACY ARCADE</span></div>
-      <div class="top-actions"><span class="pill">${label}</span><button class="settings-button" id="openSettings" aria-label="Open teacher settings" title="Settings (S)">⚙️</button></div>
-    </header>
-    <section class="stage">${content}</section>
-    ${progress()}
-    ${settingsPanel()}
-  </div>`;
+  const status = state.screen === 'attract' ? 'READY TO SPRINT' : state.screen === 'intro' ? 'DIGITAL BRIEFING' : state.screen === 'practice' ? 'PRACTICE GATE' : state.screen === 'celebrate' ? 'SPRINT COMPLETE' : `GATE ${state.challengeIndex + 1} / 5`;
+  return `<div class="shell"><header class="topbar"><div class="brand">${logo()}<span class="brandtext">HERITAGE CYBER SPRINT</span></div><div class="top-actions"><span class="pill">${status}</span><button class="settings-button" id="openSettings" aria-label="Open teacher settings" title="Settings (S)">⚙️</button></div></header><main class="stage">${content}</main>${progressStrip()}${settingsPanel()}</div>`;
+}
+
+function keyCap(key) {
+  return `<span class="arrow-key">${key}</span>`;
 }
 
 function attractScreen() {
-  return shell(`<div class="card attract-card">
-    <div class="eyebrow">Heritage Academy presents</div>
-    <h1 class="title">Heritage<br>Digital Defender</h1>
-    <p class="subtitle">Create. Explore. Stay Safe.</p>
-    <div class="defender-orb">🛡️</div>
-    <div class="start-prompt"><span class="arrow-key">←</span><b>Press either arrow to enter</b><span class="arrow-key">→</span></div>
-    <p class="tip">Five fast missions • About 50 seconds</p>
-  </div>`);
+  return shell(`<section class="hero-card"><div class="eyebrow">Heritage Academy presents</div><h1 class="title">Heritage<br>Cyber Sprint</h1><p class="subtitle">Run the lanes. Choose wisely. Build a brilliant digital footprint.</p><div class="hero-runner">🏃<span>🛡️</span></div><div class="start-prompt">${keyCap('←')}<b>Press an arrow to sprint</b>${keyCap('→')}</div><p class="tip">Five knowledge gates • ${modeName()} • About one minute</p></section>`);
 }
 
 function introScreen() {
-  const slide = introSlides[state.introStep];
-  return shell(`<div class="card intro-card" aria-live="polite">
-    <div class="intro-step">${state.introStep + 1} / ${introSlides.length}</div>
-    <div class="mission-icon intro-icon">${slide.icon}</div>
-    <div class="eyebrow">What is Digital Literacy?</div>
-    <h1 class="title compact-title">${slide.title}</h1>
-    <p class="subtitle">${slide.text}</p>
-    ${slide.examples ? `<div class="intro-examples">${slide.examples.map(example => `<span>${example}</span>`).join('')}</div>` : ''}
-    <div class="intro-progress">${introSlides.map((_, index) => `<span class="${index <= state.introStep ? 'active' : ''}"></span>`).join('')}</div>
-  </div>`);
+  const slide = INTRO_SLIDES[state.introStep];
+  return shell(`<section class="briefing-card" aria-live="polite"><div class="intro-count">${state.introStep + 1} / ${INTRO_SLIDES.length}</div><div class="brief-icon">${slide.icon}</div><div class="eyebrow">Digital briefing</div><h1 class="brief-title">${slide.title}</h1><p class="brief-copy">${slide.text}</p><div class="concept-tags">${slide.tags.map(tag => `<span>${tag}</span>`).join('')}</div><div class="intro-progress">${INTRO_SLIDES.map((_, index) => `<span class="${index <= state.introStep ? 'active' : ''}"></span>`).join('')}</div></section>`);
 }
 
-function challengeScreen() {
-  const round = state.rounds[state.roundIndex];
-  const details = categoryDetails[round.category];
-  const result = state.feedback;
-  const portalClass = side => {
-    if (!result) return '';
-    if (side === round.correctSide) return 'correct';
-    if (side === result.side) return 'wrong';
-    return 'dimmed';
-  };
-  const dashClass = result?.side === 0 ? 'dash-left' : result?.side === 1 ? 'dash-right' : '';
-  return shell(`<div class="card challenge-card" aria-live="polite">
-    <div class="challenge-topline"><div class="eyebrow">${details.name}</div><div class="countdown"><span id="timeValue">${state.secondsLeft}</span>s</div></div>
-    <div class="timer-track"><span id="timerFill" style="width:${state.secondsLeft / ROUND_SECONDS * 100}%"></span></div>
-    <div class="mission-icon challenge-icon">${details.icon}</div>
-    <h1 class="subtitle challenge-question">${round.prompt}</h1>
-    <div class="portal-grid">
-      <div class="portal ${portalClass(0)}"><span class="portal-arrow">←</span><span>${round.choices[0]}</span></div>
-      <div class="portal ${portalClass(1)}"><span class="portal-arrow">→</span><span>${round.choices[1]}</span></div>
-      <div class="runner ${dashClass}" aria-hidden="true">🛡️</div>
-    </div>
-    ${result ? `<div class="feedback-panel ${result.correct ? 'success' : 'learning'}">
-      <b>${result.correct ? 'POWER-UP EARNED!' : result.timedOut ? 'TIME’S UP—SMART MOVE REVEALED!' : 'GOOD TRY—SHIELD UPDATED!'}</b>
-      <span>${round.tip}</span>
-    </div>` : '<p class="key-hint">Choose with the ← or → arrow key</p>'}
-  </div>`);
+function cityBackdrop() {
+  return `<div class="cyber-sky"><div class="cyber-moon"></div><div class="building b1"></div><div class="building b2"></div><div class="building b3"></div><div class="building b4"></div><div class="building b5"></div></div>`;
+}
+
+function runnerRoad(inner, extraClass = '') {
+  return `<div class="runner-world ${extraClass}">${cityBackdrop()}<div class="speed-lines"></div><div class="road"><span class="lane-line line-one"></span><span class="lane-line line-two"></span><div class="data-coins">✦　✦　✦</div>${inner}<div class="runner-avatar lane-${state.lane}"><span class="runner-person">🏃</span><span class="runner-shield">🛡️</span><i class="footprint fp1">👣</i><i class="footprint fp2">👣</i></div></div></div>`;
+}
+
+function practiceScreen() {
+  const gates = [0,1,2].map(lane => `<div class="practice-ring lane-slot-${lane} ${lane === state.practiceTarget ? 'target' : ''}">${lane === state.practiceTarget ? 'MOVE HERE' : ''}</div>`).join('');
+  return shell(`<section class="sprint-card"><div class="question-banner"><div class="eyebrow">Control practice</div><h1>Move into the glowing lane</h1><p>Use only the left and right arrow keys.</p></div>${runnerRoad(`<div class="practice-gates">${gates}</div>`, state.practiceDone ? 'practice-success' : '')}<div class="lane-instruction">${keyCap('←')} Move left　•　Move right ${keyCap('→')}</div></section>`);
+}
+
+function gateClass(lane, challenge) {
+  if (!state.locked) return lane === state.lane ? 'selected' : '';
+  if (lane === challenge.correctLane) return 'correct';
+  if (lane === state.lane) return 'wrong';
+  return 'dimmed';
+}
+
+function runScreen() {
+  const challenge = state.run[state.challengeIndex];
+  const details = CATEGORY_DETAILS[challenge.category];
+  const gates = challenge.answers.map((answer, lane) => `<div class="answer-gate lane-slot-${lane} ${gateClass(lane, challenge)}"><span class="gate-label">${lane === 0 ? '← LEFT' : lane === 1 ? 'CENTRE' : 'RIGHT →'}</span><b>${answer}</b></div>`).join('');
+  const feedback = state.locked ? `<aside class="knowledge-card ${state.result.correct ? 'boost' : 'repair'}"><div><strong>${state.result.correct ? 'POWER BOOST!' : 'SHIELD REPAIR!'}</strong><span>Best lane: ${challenge.answers[challenge.correctLane]}</span></div><p>${challenge.why}</p><b>Remember: ${challenge.rule}</b></aside>` : '';
+  return shell(`<section class="sprint-card"><div class="question-banner"><div class="banner-row"><span class="category-chip">${details.icon} ${details.title}</span><span class="countdown"><b id="timeValue">${state.secondsLeft}</b>s</span></div><h1>${challenge.q}</h1><div class="timer-track"><span id="timerFill" style="width:${state.secondsLeft / GATE_SECONDS[state.mode] * 100}%"></span></div></div>${runnerRoad(`<div class="answer-gates" style="--gate-duration:${state.secondsLeft}s">${gates}</div>`, state.locked ? 'locked' : '')}${feedback}<div class="lane-instruction">${state.locked ? 'Knowledge boost—next gate approaching!' : `Choose your lane before the gate arrives　${keyCap('←')} ${keyCap('→')}`}</div></section>`);
 }
 
 function celebrationScreen() {
-  return shell(`<div class="card celebration-card" aria-live="polite">
-    <div class="confetti"></div>
-    <div class="celebration-content">
-      <div class="badge">🛡️</div>
-      <div class="eyebrow achievement-label">Heritage Academy badge earned</div>
-      <h1 class="title">Digital<br>Defender!</h1>
-      <p class="subtitle">You are ready to create, explore and stay safe.</p>
-      <div class="future-icons"><span>💻<b>Code</b></span><span>🎨<b>Create</b></span><span>🤖<b>Explore AI</b></span><span>🛡️<b>Stay safe</b></span></div>
-      <div class="next-prompt"><span class="arrow-key">↓</span><b>Next Defender</b></div>
-      <p class="tip">Resetting automatically...</p>
-    </div>
-  </div>`);
+  return shell(`<section class="victory-card" aria-live="polite"><div class="confetti"></div><div class="victory-content"><div class="badge">🏃</div><div class="eyebrow">Heritage Academy badge earned</div><h1 class="title">Cyber Sprint<br>Defender!</h1><p class="subtitle">You cleared five gates and strengthened your digital footprint.</p><div class="recap-grid"><span>🔐<b>Protect</b></span><span>🛡️<b>Check</b></span><span>👣<b>Be kind</b></span><span>🔎<b>Verify</b></span><span>🎨<b>Create</b></span></div><div class="next-prompt">${keyCap('↓')}<b>Next student</b></div><p class="tip">Create. Explore. Stay safe.</p></div></section>`);
 }
 
 function render() {
   document.body.classList.toggle('reduced-motion', state.reducedMotion);
-  const app = document.getElementById('app');
-  app.innerHTML = state.screen === 'attract' ? attractScreen()
-    : state.screen === 'intro' ? introScreen()
-    : state.screen === 'question' ? challengeScreen()
-    : celebrationScreen();
+  document.getElementById('app').innerHTML = state.screen === 'attract' ? attractScreen() : state.screen === 'intro' ? introScreen() : state.screen === 'practice' ? practiceScreen() : ['run','feedback'].includes(state.screen) ? runScreen() : celebrationScreen();
   bindTeacherControls();
 }
 
 function bindTeacherControls() {
   document.getElementById('openSettings').onclick = openSettings;
   document.querySelector('.close-settings').onclick = closeSettings;
-  document.getElementById('settingsBackdrop').onclick = event => {
-    if (event.target.id === 'settingsBackdrop') closeSettings();
-  };
+  document.getElementById('settingsBackdrop').onclick = event => { if (event.target.id === 'settingsBackdrop') closeSettings(); };
+  document.querySelectorAll('[data-mode]').forEach(button => button.onclick = () => setMode(button.dataset.mode));
   document.getElementById('musicMute').onclick = toggleMusic;
   document.getElementById('fxMute').onclick = toggleEffects;
   document.getElementById('motionToggle').onclick = toggleMotion;
-  document.getElementById('resetGame').onclick = returnToAttract;
+  document.getElementById('nextStudent').onclick = returnToAttract;
   document.getElementById('shuffleDeck').onclick = reshuffleDeck;
   document.getElementById('fullscreenToggle').onclick = toggleFullscreen;
-
-  const musicSlider = document.getElementById('musicVolume');
-  musicSlider.oninput = () => {
-    state.musicVolume = Number(musicSlider.value);
-    document.getElementById('musicOutput').value = `${Math.round(state.musicVolume * 100)}%`;
-    localStorage.setItem('heritageMusicVolume', state.musicVolume);
-  };
-  const fxSlider = document.getElementById('fxVolume');
-  fxSlider.oninput = () => {
-    state.fxVolume = Number(fxSlider.value);
-    document.getElementById('fxOutput').value = `${Math.round(state.fxVolume * 100)}%`;
-    localStorage.setItem('heritageFxVolume', state.fxVolume);
-  };
+  const music = document.getElementById('musicVolume');
+  music.oninput = () => { state.musicVolume = Number(music.value); document.getElementById('musicOutput').value = `${Math.round(state.musicVolume * 100)}%`; localStorage.setItem('heritageMusicVolume', state.musicVolume); };
+  const effects = document.getElementById('fxVolume');
+  effects.oninput = () => { state.fxVolume = Number(effects.value); document.getElementById('fxOutput').value = `${Math.round(state.fxVolume * 100)}%`; localStorage.setItem('heritageFxVolume', state.fxVolume); };
 }
 
 function clearFlowTimers() {
@@ -312,7 +225,7 @@ function clearFlowTimers() {
   countdownTimer = null;
 }
 
-function enterArcade() {
+function enterSprint() {
   clearFlowTimers();
   state.audioUnlocked = true;
   state.introStep = 0;
@@ -330,22 +243,54 @@ function scheduleIntro() {
   clearTimeout(flowTimer);
   flowTimer = setTimeout(() => {
     if (state.settingsOpen || state.screen !== 'intro') return;
-    if (state.introStep < introSlides.length - 1) {
+    if (state.introStep < INTRO_SLIDES.length - 1) {
       state.introStep += 1;
       render();
       scheduleIntro();
-    } else {
-      beginQuestion();
-    }
-  }, INTRO_SLIDE_MS);
+    } else startPractice();
+  }, INTRO_MS);
 }
 
-function beginQuestion() {
+function startPractice() {
   clearFlowTimers();
-  state.screen = 'question';
-  state.feedback = null;
-  state.secondsLeft = ROUND_SECONDS;
-  state.roundStartedAt = performance.now();
+  state.screen = 'practice';
+  state.lane = 1;
+  state.practiceTarget = Math.random() < .5 ? 0 : 2;
+  state.practiceDone = false;
+  render();
+}
+
+function moveRunner(direction) {
+  if (!['practice','run'].includes(state.screen) || state.locked) return;
+  const nextLane = Math.max(0, Math.min(2, state.lane + direction));
+  if (nextLane === state.lane) return;
+  state.lane = nextLane;
+  playEffect('move');
+  updateRunnerLane();
+  if (state.screen === 'practice' && state.lane === state.practiceTarget) completePractice();
+}
+
+function updateRunnerLane() {
+  const runner = document.querySelector('.runner-avatar');
+  if (runner) runner.className = `runner-avatar lane-${state.lane}`;
+  document.querySelectorAll('.answer-gate').forEach((gate, lane) => gate.classList.toggle('selected', lane === state.lane));
+}
+
+function completePractice() {
+  if (state.practiceDone) return;
+  state.practiceDone = true;
+  playEffect('correct');
+  document.querySelector('.runner-world')?.classList.add('practice-success');
+  flowTimer = setTimeout(startGate, 1200);
+}
+
+function startGate() {
+  clearFlowTimers();
+  state.screen = 'run';
+  state.lane = 1;
+  state.locked = false;
+  state.result = null;
+  state.secondsLeft = GATE_SECONDS[state.mode];
   render();
   startCountdown();
 }
@@ -354,41 +299,39 @@ function updateCountdown() {
   const value = document.getElementById('timeValue');
   const fill = document.getElementById('timerFill');
   if (value) value.textContent = state.secondsLeft;
-  if (fill) fill.style.width = `${Math.max(0, state.secondsLeft / ROUND_SECONDS * 100)}%`;
+  if (fill) fill.style.width = `${Math.max(0, state.secondsLeft / GATE_SECONDS[state.mode] * 100)}%`;
 }
 
 function startCountdown() {
   clearInterval(countdownTimer);
-  updateCountdown();
   countdownTimer = setInterval(() => {
-    if (state.settingsOpen || state.screen !== 'question' || state.feedback) return;
+    if (state.settingsOpen || state.screen !== 'run' || state.locked) return;
     state.secondsLeft -= 1;
     updateCountdown();
-    if (state.secondsLeft <= 0) resolveChoice(null);
+    if (state.secondsLeft <= 3 && state.secondsLeft > 0) playEffect('tick');
+    if (state.secondsLeft <= 0) lockGate();
   }, 1000);
 }
 
-function resolveChoice(side) {
-  if (state.screen !== 'question' || state.feedback) return;
+function lockGate() {
+  if (state.locked || state.screen !== 'run') return;
   clearInterval(countdownTimer);
-  const round = state.rounds[state.roundIndex];
-  const correct = side === round.correctSide;
-  state.feedback = { side, correct, timedOut: side === null };
-  playEffect(correct ? 'correct' : side === null ? 'timeout' : 'wrong');
+  const challenge = state.run[state.challengeIndex];
+  state.locked = true;
+  state.screen = 'feedback';
+  state.result = { correct:state.lane === challenge.correctLane };
+  state.completed += 1;
+  playEffect(state.result.correct ? 'correct' : 'wrong');
   render();
-  const elapsed = performance.now() - state.roundStartedAt;
-  const feedbackDelay = Math.max(FEEDBACK_MINIMUM_MS, ROUND_MINIMUM_MS - elapsed);
-  flowTimer = setTimeout(nextRound, feedbackDelay);
+  flowTimer = setTimeout(nextGate, FEEDBACK_MS);
 }
 
-function nextRound() {
+function nextGate() {
   if (state.settingsOpen) return;
-  if (state.roundIndex < ROUND_COUNT - 1) {
-    state.roundIndex += 1;
-    beginQuestion();
-  } else {
-    showCelebration();
-  }
+  if (state.challengeIndex < state.run.length - 1) {
+    state.challengeIndex += 1;
+    startGate();
+  } else showCelebration();
 }
 
 function showCelebration() {
@@ -404,10 +347,12 @@ function returnToAttract() {
   clearFlowTimers();
   state.screen = 'attract';
   state.introStep = 0;
-  state.roundIndex = 0;
-  state.rounds = [];
-  state.feedback = null;
-  state.secondsLeft = ROUND_SECONDS;
+  state.lane = 1;
+  state.run = [];
+  state.challengeIndex = 0;
+  state.completed = 0;
+  state.locked = false;
+  state.result = null;
   state.settingsOpen = false;
   musicStep = 0;
   render();
@@ -429,13 +374,19 @@ function closeSettings() {
 
 function resumeFlow() {
   if (state.screen === 'intro') scheduleIntro();
-  else if (state.screen === 'question' && !state.feedback) startCountdown();
-  else if (state.screen === 'question' && state.feedback) flowTimer = setTimeout(nextRound, FEEDBACK_MINIMUM_MS);
+  else if (state.screen === 'run') startCountdown();
+  else if (state.screen === 'feedback') flowTimer = setTimeout(nextGate, FEEDBACK_MS);
   else if (state.screen === 'celebrate') flowTimer = setTimeout(returnToAttract, CELEBRATION_MS);
 }
 
+function setMode(mode) {
+  state.mode = mode;
+  localStorage.setItem('cyberSprintMode', mode);
+  returnToAttract();
+}
+
 function reshuffleDeck() {
-  ['privacy', 'scam', 'footprint'].forEach(category => localStorage.removeItem(`heritageUsed-${category}`));
+  ['junior','senior','mixed'].forEach(mode => CATEGORIES.forEach(category => localStorage.removeItem(`cyberSprintUsed-${mode}-${category}`)));
   returnToAttract();
 }
 
@@ -445,56 +396,59 @@ function ensureAudio() {
   return audioContext;
 }
 
-function tone(frequency, duration, type = 'square', volume = 0.075, delay = 0, channel = 'fx') {
+function tone(frequency, duration, type = 'square', volume = .075, delay = 0, channel = 'fx') {
   if ((channel === 'music' && state.musicMuted) || (channel === 'fx' && state.fxMuted)) return;
   const context = ensureAudio();
   const oscillator = context.createOscillator();
   const gain = context.createGain();
   const channelVolume = channel === 'music' ? state.musicVolume : state.fxVolume;
-  const duck = channel === 'music' && performance.now() < duckUntil ? 0.55 : 1;
+  const duck = channel === 'music' && performance.now() < duckUntil ? .55 : 1;
   oscillator.type = type;
   oscillator.frequency.value = frequency;
-  gain.gain.setValueAtTime(Math.max(0.0001, volume * channelVolume * duck), context.currentTime + delay);
-  gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + delay + duration);
+  gain.gain.setValueAtTime(Math.max(.0001, volume * channelVolume * duck), context.currentTime + delay);
+  gain.gain.exponentialRampToValueAtTime(.0001, context.currentTime + delay + duration);
   oscillator.connect(gain).connect(context.destination);
   oscillator.start(context.currentTime + delay);
   oscillator.stop(context.currentTime + delay + duration);
 }
 
 function playEffect(type) {
-  duckUntil = performance.now() + 650;
-  if (type === 'correct') {
-    tone(523, 0.12, 'square', 0.08); tone(659, 0.12, 'square', 0.085, 0.12); tone(784, 0.22, 'square', 0.09, 0.24);
-  } else if (type === 'wrong' || type === 'timeout') {
-    tone(220, 0.14, 'sawtooth', 0.075); tone(type === 'timeout' ? 196 : 165, 0.22, 'triangle', 0.07, 0.14);
-  } else if (type === 'win') {
-    [523, 659, 784, 1047].forEach((frequency, index) => tone(frequency, 0.3, 'square', 0.085, index * 0.15));
-  } else {
-    tone(392, 0.1, 'square', 0.075); tone(523, 0.16, 'square', 0.08, 0.1);
-  }
+  duckUntil = performance.now() + 550;
+  if (type === 'move') tone(330, .08, 'triangle', .045);
+  else if (type === 'tick') tone(880, .07, 'square', .05);
+  else if (type === 'correct') { tone(523,.11,'square',.08); tone(659,.11,'square',.085,.1); tone(784,.2,'square',.09,.2); }
+  else if (type === 'wrong') { tone(220,.14,'sawtooth',.075); tone(165,.22,'triangle',.07,.14); }
+  else if (type === 'win') [523,659,784,1047].forEach((note,index) => tone(note,.28,'square',.085,index*.14));
+  else { tone(392,.1,'square',.075); tone(523,.16,'square',.08,.1); }
 }
 
-function playMusicNote() {
+function playMusicBeat() {
   if (!state.audioUnlocked || state.musicMuted) return;
-  const normal = [262, 330, 392, 330, 294, 370, 440, 370, 330, 392, 494, 392];
-  const victory = [523, 659, 784, 1047, 784, 659, 698, 880, 1047, 880, 784, 659];
-  const melody = state.screen === 'celebrate' ? victory : normal;
+  const normal = [262,330,392,330,294,370,440,370,330,392,494,392];
+  const rush = [392,494,587,494,440,554,659,554];
+  const victory = [523,659,784,1047,784,659,698,880,1047,880,784,659];
+  const melody = state.screen === 'celebrate' ? victory : state.screen === 'run' && state.secondsLeft <= 2 ? rush : normal;
   const note = melody[musicStep % melody.length];
-  tone(note, 0.21, state.screen === 'celebrate' ? 'square' : 'triangle', 0.062, 0, 'music');
-  if (state.screen === 'celebrate' && musicStep % 2 === 0) tone(note / 2, 0.29, 'triangle', 0.035, 0, 'music');
+  tone(note,.2,state.screen === 'celebrate' ? 'square' : 'triangle',.062,0,'music');
+  if ((state.screen === 'celebrate' || state.screen === 'run') && musicStep % 2 === 0) tone(note/2,.26,'triangle',.03,0,'music');
   musicStep += 1;
 }
 
+function scheduleMusic() {
+  clearTimeout(musicTimer);
+  playMusicBeat();
+  const delay = state.screen === 'run' && state.secondsLeft <= 2 ? 145 : state.screen === 'celebrate' ? 180 : 240;
+  musicTimer = setTimeout(scheduleMusic, delay);
+}
+
 function startMusic() {
-  if (musicLoop) return;
-  playMusicNote();
-  musicLoop = setInterval(playMusicNote, 250);
+  if (!musicTimer) scheduleMusic();
 }
 
 function toggleMusic() {
   state.musicMuted = !state.musicMuted;
   localStorage.setItem('heritageMusicMuted', state.musicMuted);
-  if (!state.musicMuted && state.audioUnlocked) ensureAudio();
+  if (!state.musicMuted && state.audioUnlocked) { ensureAudio(); startMusic(); }
   render();
 }
 
@@ -512,14 +466,11 @@ function toggleMotion() {
 }
 
 function requestFullscreen() {
-  if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-    document.documentElement.requestFullscreen().catch(() => {});
-  }
+  if (!document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
 }
 
 function toggleFullscreen() {
-  if (document.fullscreenElement) document.exitFullscreen?.();
-  else requestFullscreen();
+  if (document.fullscreenElement) document.exitFullscreen?.(); else requestFullscreen();
   state.settingsOpen = false;
   render();
   resumeFlow();
@@ -527,27 +478,18 @@ function toggleFullscreen() {
 
 addEventListener('keydown', event => {
   const key = event.key.toLowerCase();
-  if (['arrowleft', 'arrowright', 'arrowdown', 'arrowup'].includes(key)) event.preventDefault();
-  if (key === 's') {
-    state.settingsOpen ? closeSettings() : openSettings();
-    return;
-  }
-  if (event.key === 'Escape' && state.settingsOpen) {
-    closeSettings();
-    return;
-  }
+  if (['arrowleft','arrowright','arrowdown','arrowup'].includes(key)) event.preventDefault();
+  if (key === 's') { state.settingsOpen ? closeSettings() : openSettings(); return; }
+  if (event.key === 'Escape' && state.settingsOpen) { closeSettings(); return; }
   if (state.settingsOpen) return;
   if (state.audioUnlocked) ensureAudio();
   if (key === 'm') toggleMusic();
   if (key === 'r') returnToAttract();
-  if (state.screen === 'attract' && (key === 'arrowleft' || key === 'arrowright')) enterArcade();
-  else if (state.screen === 'question' && key === 'arrowleft') resolveChoice(0);
-  else if (state.screen === 'question' && key === 'arrowright') resolveChoice(1);
+  if (state.screen === 'attract' && ['arrowleft','arrowright'].includes(key)) enterSprint();
+  else if (['practice','run'].includes(state.screen) && key === 'arrowleft') moveRunner(-1);
+  else if (['practice','run'].includes(state.screen) && key === 'arrowright') moveRunner(1);
   else if (state.screen === 'celebrate' && key === 'arrowdown') returnToAttract();
 });
 
-document.addEventListener('fullscreenchange', () => {
-  if (state.settingsOpen) render();
-});
-
+document.addEventListener('fullscreenchange', () => { if (state.settingsOpen) render(); });
 render();
