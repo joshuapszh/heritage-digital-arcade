@@ -15,7 +15,9 @@ const INTRO_SLIDES = [
 const GATE_SECONDS = { junior:10, senior:10, mixed:10 };
 const READING_PAUSE_MS = 1800;
 const FEEDBACK_MS = 2400;
-const CELEBRATION_MS = 6000;
+const CELEBRATION_MS = 12000;
+const LEADERBOARD_KEY = 'heritageCyberSprintLeaderboard';
+const LEADERBOARD_LIMIT = 10;
 
 const savedNumber = (key, fallback) => {
   const value = Number(localStorage.getItem(key));
@@ -36,6 +38,13 @@ let state = {
   locked:false,
   result:null,
   completed:0,
+  score:0,
+  playerName:'',
+  runStartedAt:0,
+  runPausedAt:0,
+  runPausedMs:0,
+  runSeconds:0,
+  placement:0,
   settingsOpen:false,
   audioUnlocked:false,
   musicMuted:localStorage.getItem('heritageMusicMuted') === 'true',
@@ -51,6 +60,57 @@ let audioContext = null;
 let musicTimer = null;
 let musicStep = 0;
 let duckUntil = 0;
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[character]);
+}
+
+function normalizeDisplayName(value) {
+  return String(value || '').replace(/[\u0000-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim().slice(0, 16);
+}
+
+function getLeaderboard(mode = null) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+    if (!Array.isArray(saved)) return [];
+    const cleaned = saved.filter(entry => entry && typeof entry.name === 'string' && Number.isFinite(entry.score) && Number.isFinite(entry.seconds))
+      .map(entry => ({
+        id:String(entry.id || ''),
+        name:normalizeDisplayName(entry.name) || 'Cyber Runner',
+        score:Math.max(0, Math.min(5, Math.round(entry.score))),
+        seconds:Math.max(1, Math.round(entry.seconds)),
+        mode:['junior','mixed','senior'].includes(entry.mode) ? entry.mode : 'mixed',
+        date:Number.isFinite(entry.date) ? entry.date : 0
+      }))
+      .sort((a, b) => b.score - a.score || a.seconds - b.seconds || a.date - b.date);
+    return (mode ? cleaned.filter(entry => entry.mode === mode) : cleaned).slice(0, mode ? LEADERBOARD_LIMIT : LEADERBOARD_LIMIT * 3);
+  } catch { return []; }
+}
+
+function saveLeaderboardEntry() {
+  const entry = {
+    id:`${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name:state.playerName || 'Cyber Runner',
+    score:state.score,
+    seconds:state.runSeconds,
+    mode:state.mode,
+    date:Date.now()
+  };
+  const candidates = [...getLeaderboard(), entry];
+  const leaderboard = ['junior','mixed','senior'].flatMap(mode => candidates.filter(item => item.mode === mode)
+    .sort((a, b) => b.score - a.score || a.seconds - b.seconds || a.date - b.date)
+    .slice(0, LEADERBOARD_LIMIT));
+  localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboard));
+  state.placement = leaderboard.filter(item => item.mode === state.mode)
+    .sort((a, b) => b.score - a.score || a.seconds - b.seconds || a.date - b.date)
+    .findIndex(item => item.id === entry.id) + 1;
+}
+
+function clearLeaderboard() {
+  if (!confirm('Clear every score saved on this device? This cannot be undone.')) return;
+  localStorage.removeItem(LEADERBOARD_KEY);
+  render();
+}
 
 function shuffled(items) {
   const copy = [...items];
@@ -110,6 +170,12 @@ function totalAvailable() {
   return CATEGORIES.reduce((sum, category) => sum + eligibleQuestions(category).length, 0);
 }
 
+function leaderboardPanel() {
+  const leaderboard = getLeaderboard(state.mode);
+  const rows = leaderboard.length ? leaderboard.map((entry, index) => `<li><span class="rank">${index + 1}</span><span class="leader-name">${escapeHtml(entry.name)}</span><b>${entry.score}/5</b><small>${entry.seconds}s</small></li>`).join('') : '<li class="empty-score">No scores yet—be the first runner!</li>';
+  return `<aside class="leaderboard-card" aria-labelledby="leaderboardTitle"><div class="leaderboard-heading"><div><div class="eyebrow">${modeName()} · This device</div><h2 id="leaderboardTitle">Leaderboard</h2></div><span class="trophy">🏆</span></div><ol>${rows}</ol><p>Nickname, score and time stay in this browser only.</p></aside>`;
+}
+
 function logo() {
   return '<img class="logo" src="heritage-logo.png" alt="Heritage Academy">';
 }
@@ -140,8 +206,10 @@ function settingsPanel() {
       <button class="action secondary wide" id="fxMute">${state.fxMuted ? 'Turn effects on' : 'Mute effects'}</button>
       <button class="action secondary wide" id="motionToggle">${state.reducedMotion ? 'Use full animation' : 'Reduce animation'}</button>
       <div class="deck-status"><b>${modeName()}</b><br>${usedCount()} of ${totalAvailable()} challenges used</div>
+      <div class="deck-status"><b>${modeName()} leaderboard</b><br>${getLeaderboard(state.mode).length} of ${LEADERBOARD_LIMIT} places saved</div>
       <div class="settings-actions"><button class="action" id="nextStudent">Next student</button><button class="action secondary" id="shuffleDeck">Reshuffle deck</button><button class="action secondary" id="fullscreenToggle">${document.fullscreenElement ? 'Exit fullscreen' : 'Enter fullscreen'}</button></div>
-      <p class="small">Students: ← → move · ↓ next student. Teachers: S settings · M music · R reset.</p>
+      <button class="action danger wide" id="clearLeaderboard" ${getLeaderboard().length ? '' : 'disabled'}>Clear all leaderboards</button>
+      <p class="small">Students: ← → move · ↓ lock answer / next student. Teachers: S settings · M music · R reset.</p>
     </section>
   </div>`;
 }
@@ -156,7 +224,7 @@ function keyCap(key) {
 }
 
 function attractScreen() {
-  return shell(`<section class="hero-card"><div class="eyebrow">Heritage Academy presents</div><h1 class="title">Heritage<br>Cyber Sprint</h1><p class="subtitle">Run the lanes. Choose wisely. Build a brilliant digital footprint.</p><div class="hero-runner">🏃<span>🛡️</span></div><div class="start-prompt">${keyCap('←')}<b>Press an arrow to sprint</b>${keyCap('→')}</div><p class="tip">Five knowledge gates • ${modeName()} • About one minute</p></section>`);
+  return shell(`<div class="home-grid"><section class="hero-card"><div class="eyebrow">Heritage Academy presents</div><h1 class="title">Heritage<br>Cyber Sprint</h1><p class="subtitle">Run the lanes. Choose wisely. Build a brilliant digital footprint.</p><div class="hero-runner">🏃<span>🛡️</span></div><form class="player-form" id="playerForm"><label for="playerName">Nickname or initials <small>(optional)</small></label><div class="player-entry"><input id="playerName" name="playerName" type="text" maxlength="16" autocomplete="off" placeholder="Cyber Runner" aria-describedby="namePrivacy"><button class="action" type="submit">Start Sprint</button></div><p id="namePrivacy">Stored only on this device. Do not enter your full name.</p></form><div class="start-prompt">${keyCap('←')}<b>Or press an arrow to sprint</b>${keyCap('→')}</div><p class="tip">Five knowledge gates • ${modeName()} • About two minutes</p></section>${leaderboardPanel()}</div>`);
 }
 
 function introScreen() {
@@ -191,17 +259,20 @@ function runScreen() {
   const gates = challenge.answers.map((answer, lane) => `<div class="answer-gate lane-slot-${lane} ${gateClass(lane, challenge)}"><span class="gate-label">${lane === 0 ? '← LEFT' : lane === 1 ? 'CENTRE' : 'RIGHT →'}</span><b>${answer}</b></div>`).join('');
   const feedback = state.locked ? `<aside class="knowledge-card ${state.result.correct ? 'boost' : 'repair'}"><div><strong>${state.result.correct ? 'POWER BOOST!' : 'SHIELD REPAIR!'}</strong><span>Best lane: ${challenge.answers[challenge.correctLane]}</span></div><p>${challenge.why}</p><b>Remember: ${challenge.rule}</b></aside>` : '';
   const timerLabel = state.gateActive || state.locked ? `<b id="timeValue">${state.secondsLeft}</b>s` : '<b id="timeValue">READY</b>';
-  return shell(`<section class="sprint-card"><div class="question-banner"><div class="banner-row"><span class="category-chip">${details.icon} ${details.title}</span><span class="countdown">${timerLabel}</span></div><h1>${challenge.q}</h1><div class="timer-track"><span id="timerFill" style="width:${state.secondsLeft / GATE_SECONDS[state.mode] * 100}%"></span></div></div>${runnerRoad(`<div class="answer-gates ${state.gateActive || state.locked ? '' : 'waiting'}" style="--gate-duration:${state.secondsLeft}s">${gates}</div>`, state.locked ? 'locked' : '')}${feedback}<div class="lane-instruction">${state.locked ? 'Knowledge boost—next gate approaching!' : state.gateActive ? `Choose your lane before the gate arrives　${keyCap('←')} ${keyCap('→')}` : 'Read all three answers—get ready!'}</div></section>`);
+  return shell(`<section class="sprint-card"><div class="question-banner"><div class="banner-row"><span class="category-chip">${details.icon} ${details.title}</span><span class="countdown">${timerLabel}</span></div><h1>${challenge.q}</h1><div class="timer-track"><span id="timerFill" style="width:${state.secondsLeft / GATE_SECONDS[state.mode] * 100}%"></span></div></div>${runnerRoad(`<div class="answer-gates ${state.gateActive || state.locked ? '' : 'waiting'}" style="--gate-duration:${state.secondsLeft}s">${gates}</div>`, state.locked ? 'locked' : '')}${feedback}<div class="lane-instruction">${state.locked ? 'Knowledge boost—next gate approaching!' : state.gateActive ? `Choose your lane ${keyCap('←')} ${keyCap('→')}　Lock in ${keyCap('↓')}` : 'Read all three answers—get ready!'}</div></section>`);
 }
 
 function celebrationScreen() {
-  return shell(`<section class="victory-card" aria-live="polite"><div class="confetti"></div><div class="victory-content"><div class="badge">🏃</div><div class="eyebrow">Heritage Academy badge earned</div><h1 class="title">Cyber Sprint<br>Defender!</h1><p class="subtitle">You cleared five gates and strengthened your digital footprint.</p><div class="recap-grid"><span>🔐<b>Protect</b></span><span>🛡️<b>Check</b></span><span>👣<b>Be kind</b></span><span>🔎<b>Verify</b></span><span>🎨<b>Create</b></span></div><div class="next-prompt">${keyCap('↓')}<b>Next student</b></div><p class="tip">Create. Explore. Stay safe.</p></div></section>`);
+  const displayName = escapeHtml(state.playerName || 'Cyber Runner');
+  const placement = state.placement ? `<span><b>#${state.placement}</b>Device rank</span>` : '<span><b>Keep going!</b>Top 10 challenge</span>';
+  return shell(`<section class="victory-card" aria-live="polite"><div class="confetti"></div><div class="victory-content"><div class="badge">🏃</div><div class="eyebrow">Heritage Academy badge earned</div><h1 class="title">Cyber Sprint<br>Defender!</h1><p class="subtitle"><b>${displayName}</b>, you cleared five gates and strengthened your digital footprint.</p><div class="result-summary"><span><b>${state.score}/5</b>Correct answers</span><span><b>${state.runSeconds}s</b>Sprint time</span>${placement}</div><div class="recap-grid"><span>🔐<b>Protect</b></span><span>🛡️<b>Check</b></span><span>👣<b>Be kind</b></span><span>🔎<b>Verify</b></span><span>🎨<b>Create</b></span></div><div class="next-prompt">${keyCap('↓')}<b>Next student</b></div><p class="tip">Your result was saved on this device only.</p></div></section>`);
 }
 
 function render() {
   document.body.classList.toggle('reduced-motion', state.reducedMotion);
   document.getElementById('app').innerHTML = state.screen === 'attract' ? attractScreen() : state.screen === 'intro' ? introScreen() : state.screen === 'practice' ? practiceScreen() : ['run','feedback'].includes(state.screen) ? runScreen() : celebrationScreen();
   bindTeacherControls();
+  if (state.screen === 'attract') document.getElementById('playerName').value = state.playerName;
 }
 
 function bindTeacherControls() {
@@ -212,10 +283,15 @@ function bindTeacherControls() {
   document.getElementById('musicMute').onclick = toggleMusic;
   document.getElementById('fxMute').onclick = toggleEffects;
   document.getElementById('motionToggle').onclick = toggleMotion;
+  document.getElementById('clearLeaderboard').onclick = clearLeaderboard;
   document.getElementById('nextStudent').onclick = returnToAttract;
   document.getElementById('shuffleDeck').onclick = reshuffleDeck;
   document.getElementById('fullscreenToggle').onclick = toggleFullscreen;
   document.getElementById('nextBriefing')?.addEventListener('click', advanceBriefing);
+  const playerForm = document.getElementById('playerForm');
+  const playerName = document.getElementById('playerName');
+  playerName?.addEventListener('input', () => { state.playerName = playerName.value.slice(0, 16); });
+  playerForm?.addEventListener('submit', event => { event.preventDefault(); state.playerName = normalizeDisplayName(playerName.value); enterSprint(); });
   const music = document.getElementById('musicVolume');
   music.oninput = () => { state.musicVolume = Number(music.value); document.getElementById('musicOutput').value = `${Math.round(state.musicVolume * 100)}%`; localStorage.setItem('heritageMusicVolume', state.musicVolume); };
   const effects = document.getElementById('fxVolume');
@@ -231,6 +307,8 @@ function clearFlowTimers() {
 
 function enterSprint() {
   clearFlowTimers();
+  const nameInput = document.getElementById('playerName');
+  if (nameInput) state.playerName = normalizeDisplayName(nameInput.value);
   state.audioUnlocked = true;
   state.introStep = 0;
   state.screen = 'intro';
@@ -286,6 +364,7 @@ function completePractice() {
 
 function startGate() {
   clearFlowTimers();
+  if (!state.runStartedAt) state.runStartedAt = performance.now();
   state.screen = 'run';
   state.lane = 1;
   state.locked = false;
@@ -328,6 +407,7 @@ function lockGate() {
   state.locked = true;
   state.screen = 'feedback';
   state.result = { correct:state.lane === challenge.correctLane };
+  if (state.result.correct) state.score += 1;
   state.completed += 1;
   playEffect(state.result.correct ? 'correct' : 'wrong');
   render();
@@ -344,6 +424,8 @@ function nextGate() {
 
 function showCelebration() {
   clearFlowTimers();
+  state.runSeconds = Math.max(1, Math.round((performance.now() - state.runStartedAt - state.runPausedMs) / 1000));
+  saveLeaderboardEntry();
   state.screen = 'celebrate';
   musicStep = 0;
   playEffect('win');
@@ -359,6 +441,13 @@ function returnToAttract() {
   state.run = [];
   state.challengeIndex = 0;
   state.completed = 0;
+  state.score = 0;
+  state.playerName = '';
+  state.runStartedAt = 0;
+  state.runPausedAt = 0;
+  state.runPausedMs = 0;
+  state.runSeconds = 0;
+  state.placement = 0;
   state.locked = false;
   state.gateActive = false;
   state.result = null;
@@ -369,12 +458,17 @@ function returnToAttract() {
 
 function openSettings() {
   clearFlowTimers();
+  if (state.runStartedAt && !state.runPausedAt) state.runPausedAt = performance.now();
   state.settingsOpen = true;
   render();
   document.querySelector('.close-settings').focus();
 }
 
 function closeSettings() {
+  if (state.runPausedAt) {
+    state.runPausedMs += performance.now() - state.runPausedAt;
+    state.runPausedAt = 0;
+  }
   state.settingsOpen = false;
   render();
   document.getElementById('openSettings').focus();
@@ -526,6 +620,10 @@ function requestFullscreen() {
 
 function toggleFullscreen() {
   if (document.fullscreenElement) document.exitFullscreen?.(); else requestFullscreen();
+  if (state.runPausedAt) {
+    state.runPausedMs += performance.now() - state.runPausedAt;
+    state.runPausedAt = 0;
+  }
   state.settingsOpen = false;
   render();
   resumeFlow();
@@ -533,6 +631,7 @@ function toggleFullscreen() {
 
 addEventListener('keydown', event => {
   const key = event.key.toLowerCase();
+  if (event.target.matches('input, textarea, select')) return;
   if (['arrowleft','arrowright','arrowdown','arrowup'].includes(key)) event.preventDefault();
   if (key === 's') { state.settingsOpen ? closeSettings() : openSettings(); return; }
   if (event.key === 'Escape' && state.settingsOpen) { closeSettings(); return; }
@@ -544,6 +643,7 @@ addEventListener('keydown', event => {
   else if (state.screen === 'intro' && ['arrowright','arrowdown'].includes(key)) advanceBriefing();
   else if (['practice','run'].includes(state.screen) && key === 'arrowleft') moveRunner(-1);
   else if (['practice','run'].includes(state.screen) && key === 'arrowright') moveRunner(1);
+  else if (state.screen === 'run' && state.gateActive && ['arrowdown','enter',' '].includes(key)) lockGate();
   else if (state.screen === 'celebrate' && key === 'arrowdown') returnToAttract();
 });
 
